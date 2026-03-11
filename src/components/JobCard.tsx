@@ -1,4 +1,7 @@
+'use client';
+
 import { Job } from '@/types/job';
+import { useJobStore } from '@/store/jobStore';
 import StatusBadge from './StatusBadge';
 
 interface Props {
@@ -6,6 +9,10 @@ interface Props {
 }
 
 export default function JobCard({ job }: Props) {
+  // ← Zustand: subscribe only to the deleteJob action.
+  // This component won't re-render when other state (like jobs list) changes.
+  const deleteJob = useJobStore((state) => state.deleteJob);
+
   const deadlineSoon =
     job.deadline &&
     new Date(job.deadline) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
@@ -17,7 +24,16 @@ export default function JobCard({ job }: Props) {
           <p className="text-xs text-gray-500">{job.company}</p>
           <h3 className="font-semibold text-gray-900">{job.role}</h3>
         </div>
-        <StatusBadge status={job.status} />
+        <div className="flex items-center gap-2">
+          <StatusBadge status={job.status} />
+          <button
+            onClick={() => deleteJob(job.id)}
+            className="text-gray-300 hover:text-red-500 transition-colors text-lg leading-none"
+            aria-label="Delete job"
+          >
+            ×
+          </button>
+        </div>
       </div>
 
       <div className="mt-3 text-xs text-gray-500 space-y-1">
