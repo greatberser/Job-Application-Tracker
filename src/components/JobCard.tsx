@@ -1,17 +1,18 @@
 'use client';
 
+import { useState } from 'react';
 import { Job } from '@/types/job';
 import { useJobStore } from '@/store/jobStore';
 import StatusBadge from './StatusBadge';
+import JobFormModal from './JobFormModal';
 
 interface Props {
   job: Job;
 }
 
 export default function JobCard({ job }: Props) {
-  // ← Zustand: subscribe only to the deleteJob action.
-  // This component won't re-render when other state (like jobs list) changes.
   const deleteJob = useJobStore((state) => state.deleteJob);
+  const [editing, setEditing] = useState(false);
 
   const deadlineSoon =
     job.deadline &&
@@ -27,6 +28,13 @@ export default function JobCard({ job }: Props) {
         <div className="flex items-center gap-2">
           <StatusBadge status={job.status} />
           <button
+            onClick={() => setEditing(true)}
+            className="text-gray-300 hover:text-blue-500 transition-colors text-sm leading-none"
+            aria-label="Edit job"
+          >
+            ✎
+          </button>
+          <button
             onClick={() => deleteJob(job.id)}
             className="text-gray-300 hover:text-red-500 transition-colors text-lg leading-none"
             aria-label="Delete job"
@@ -35,6 +43,8 @@ export default function JobCard({ job }: Props) {
           </button>
         </div>
       </div>
+
+      <JobFormModal open={editing} onClose={() => setEditing(false)} job={job} />
 
       <div className="mt-3 text-xs text-gray-500 space-y-1">
         <p>Applied: {new Date(job.appliedDate).toLocaleDateString()}</p>
