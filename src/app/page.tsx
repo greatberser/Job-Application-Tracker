@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { JOB_STATUSES } from '@/types/job';
 import { useJobStore } from '@/store/jobStore';
+import { useAuthStore } from '@/store/authStore';
 import JobCard from '@/components/JobCard';
 import AddJobForm from '@/components/AddJobForm';
 
@@ -10,6 +11,7 @@ export default function Home() {
   const jobs = useJobStore((state) => state.jobs);
   const loading = useJobStore((state) => state.loading);
   const loadJobs = useJobStore((state) => state.loadJobs);
+  const { user, signOutUser } = useAuthStore();
 
   useEffect(() => {
     loadJobs();
@@ -32,7 +34,16 @@ export default function Home() {
             {jobs.length} applications tracked
           </p>
         </div>
-        <AddJobForm />
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-500 hidden sm:block">{user?.displayName}</span>
+          <AddJobForm />
+          <button
+            onClick={signOutUser}
+            className="px-4 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            Sign out
+          </button>
+        </div>
       </header>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
