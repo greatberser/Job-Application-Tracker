@@ -1,18 +1,27 @@
 'use client';
 
-// This page is now a client component because it reads from Zustand.
-// In Next.js App Router, only client components can use hooks.
-// Server components can't — they run only on the server.
-
+import { useEffect } from 'react';
 import { JOB_STATUSES } from '@/types/job';
 import { useJobStore } from '@/store/jobStore';
 import JobCard from '@/components/JobCard';
 import AddJobForm from '@/components/AddJobForm';
 
 export default function Home() {
-  // ← Zustand: subscribe to the full jobs array.
-  // Any time jobs changes (add/delete), this component re-renders.
   const jobs = useJobStore((state) => state.jobs);
+  const loading = useJobStore((state) => state.loading);
+  const loadJobs = useJobStore((state) => state.loadJobs);
+
+  useEffect(() => {
+    loadJobs();
+  }, []);
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
+        <p className="text-gray-400 text-sm">Loading...</p>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-gray-50 p-6">

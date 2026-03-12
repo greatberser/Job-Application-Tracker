@@ -1,35 +1,46 @@
 import { create } from 'zustand';
 import { Job, JobStatus } from '@/types/job';
-import { SAMPLE_JOBS } from '@/utils/sampleData';
+import { fetchJobs, createJob, editJob, removeJob } from '@/services/jobService';
 
 interface JobStore {
   jobs: Job[];
-  addJob: (job: Omit<Job, 'id'>) => void;
-  deleteJob: (id: string) => void;
-  updateJob: (id: string, updates: Partial<Job>) => void;
-  setStatus: (id: string, status: JobStatus) => void;
+  loading: boolean;
+  loadJobs: () => Promise<void>;
+  addJob: (job: Omit<Job, 'id'>) => Promise<void>;
+  deleteJob: (id: string) => Promise<void>;
+  updateJob: (id: string, updates: Partial<Job>) => Promise<void>;
+  setStatus: (id: string, status: JobStatus) => Promise<void>;
 }
 
-export const useJobStore = create<JobStore>((set) => ({
-  jobs: SAMPLE_JOBS,
+export const useJobStore = create<JobStore>((set, get) => ({
+  jobs: [],
+  loading: false,
 
-  addJob: (job) =>
-    set((state) => ({
-      jobs: [...state.jobs, { ...job, id: crypto.randomUUID() }],
-    })),
+  loadJobs: async () => {
+    set({ loading: true });
+    const jobs = await fetchJobs();
+    set({ jobs, loading: false });
+  },
 
-  deleteJob: (id) =>
-    set((state) => ({
-      jobs: state.jobs.filter((j) => j.id !== id),
-    })),
+  // optimistic update: update UI immediately, then sync to Firestore
+  addJob: async (job) => {
+    const newJob = await createJob(job);
+    set((state) => ({ jobs: [newJob, ...state.jobs] }));
+  },
 
-  updateJob: (id, updates) =>
+  deleteJob: async (id) => {
+    set((state) => ({ jobs: state.jobs.filter((j) => j.id !== id) }));
+    await removeJob(id);
+  },
+
+  updateJob: async (id, updates) => {
     set((state) => ({
       jobs: state.jobs.map((j) => (j.id === id ? { ...j, ...updates } : j)),
-    })),
+    }));
+    await editJob(id, updates);
+  },
 
-  setStatus: (id, status) =>
-    set((state) => ({
-      jobs: state.jobs.map((j) => (j.id === id ? { ...j, status } : j)),
-    })),
+  setStatus: async (id, status) => {
+    get().updateJob(id, { status });
+  },
 }));
