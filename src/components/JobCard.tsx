@@ -22,7 +22,7 @@ export default function JobCard({ job }: Props) {
     <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="text-xs text-gray-500">{job.company}</p>
+          <p className="text-xs text-gray-500 line-clamp-1">{job.company}</p>
           <h3 className="font-semibold text-gray-900">{job.role}</h3>
         </div>
         <div className="flex items-center gap-2">

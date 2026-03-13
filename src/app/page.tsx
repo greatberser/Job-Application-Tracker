@@ -6,9 +6,11 @@ import { JOB_STATUSES, JobStatus } from '@/types/job';
 import { useJobStore } from '@/store/jobStore';
 import { useAuthStore } from '@/store/authStore';
 import JobCard from '@/components/JobCard';
+import EmptyColumn from '@/components/EmptyColumn';
 import AddJobForm from '@/components/AddJobForm';
 import StatsDashboard from '@/components/StatsDashboard';
 import SkeletonBoard from '@/components/SkeletonBoard';
+import { exportToCsv } from '@/utils/exportCsv';
 
 export default function Home() {
   const jobs = useJobStore((state) => state.jobs);
@@ -62,6 +64,12 @@ export default function Home() {
         </div>
         <div className="flex items-center gap-3">
           <span className="text-sm text-gray-500 hidden sm:block">{user?.displayName}</span>
+          <button
+            onClick={() => exportToCsv(jobs)}
+            className="px-4 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            Export CSV
+          </button>
           <AddJobForm />
           <button
             onClick={signOutUser}
@@ -110,7 +118,7 @@ export default function Home() {
                 </span>
               </div>
               {col.length === 0 ? (
-                <p className="text-xs text-gray-400 italic">No applications</p>
+                <EmptyColumn />
               ) : (
                 col.map((job) => <JobCard key={job.id} job={job} />)
               )}
