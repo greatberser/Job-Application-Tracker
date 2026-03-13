@@ -8,6 +8,7 @@ import { useAuthStore } from '@/store/authStore';
 import JobCard from '@/components/JobCard';
 import AddJobForm from '@/components/AddJobForm';
 import StatsDashboard from '@/components/StatsDashboard';
+import SkeletonBoard from '@/components/SkeletonBoard';
 
 export default function Home() {
   const jobs = useJobStore((state) => state.jobs);
@@ -36,8 +37,18 @@ export default function Home() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
-        <p className="text-gray-400 text-sm">Loading...</p>
+      <main className="min-h-screen bg-gray-50 p-6">
+        <div className="h-8 w-32 bg-gray-200 rounded animate-pulse mb-2" />
+        <div className="h-3 w-40 bg-gray-200 rounded animate-pulse mb-8" />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="bg-white border border-gray-200 rounded-xl p-4 space-y-2">
+              <div className="h-2.5 w-20 bg-gray-200 rounded animate-pulse" />
+              <div className="h-7 w-10 bg-gray-200 rounded animate-pulse" />
+            </div>
+          ))}
+        </div>
+        <SkeletonBoard />
       </main>
     );
   }
