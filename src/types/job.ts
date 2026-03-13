@@ -2,6 +2,7 @@ export type JobStatus = 'applied' | 'interview' | 'offer' | 'rejected';
 
 export interface Job {
   id: string;
+  userId: string;
   company: string;
   role: string;
   status: JobStatus;

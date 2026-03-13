@@ -5,7 +5,7 @@ import { fetchJobs, createJob, editJob, removeJob } from '@/services/jobService'
 interface JobStore {
   jobs: Job[];
   loading: boolean;
-  loadJobs: () => Promise<void>;
+  loadJobs: (userId: string) => Promise<void>;
   addJob: (job: Omit<Job, 'id'>) => Promise<void>;
   deleteJob: (id: string) => Promise<void>;
   updateJob: (id: string, updates: Partial<Job>) => Promise<void>;
@@ -16,9 +16,9 @@ export const useJobStore = create<JobStore>((set, get) => ({
   jobs: [],
   loading: false,
 
-  loadJobs: async () => {
+  loadJobs: async (userId: string) => {
     set({ loading: true });
-    const jobs = await fetchJobs();
+    const jobs = await fetchJobs(userId);
     set({ jobs, loading: false });
   },
 

@@ -26,8 +26,8 @@ export default function Home() {
   }
 
   useEffect(() => {
-    loadJobs();
-  }, []);
+    if (user) loadJobs(user.uid);
+  }, [user]);
 
   const visibleStatuses = activeStatus
     ? JOB_STATUSES.filter((s) => s.value === activeStatus)

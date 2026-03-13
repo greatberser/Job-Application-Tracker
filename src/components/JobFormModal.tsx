@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useJobStore } from '@/store/jobStore';
+import { useAuthStore } from '@/store/authStore';
 import { Job, JOB_STATUSES, JobStatus } from '@/types/job';
 
 interface Props {
@@ -23,6 +24,7 @@ const EMPTY_FORM = {
 export default function JobFormModal({ open, onClose, job }: Props) {
   const addJob = useJobStore((state) => state.addJob);
   const updateJob = useJobStore((state) => state.updateJob);
+  const user = useAuthStore((state) => state.user);
 
   const [form, setForm] = useState(EMPTY_FORM);
 
@@ -59,7 +61,7 @@ export default function JobFormModal({ open, onClose, job }: Props) {
     if (isEditing) {
       updateJob(job.id, data);
     } else {
-      addJob(data);
+      addJob({ ...data, userId: user!.uid });
     }
     onClose();
   }

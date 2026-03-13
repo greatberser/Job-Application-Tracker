@@ -7,17 +7,19 @@ import {
   doc,
   orderBy,
   query,
+  where,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Job } from '@/types/job';
 
 const COL = 'jobs';
 
-// Firestore stores documents — each job is a document in the "jobs" collection.
-// Documents don't have a fixed schema, but we enforce one via TypeScript.
-
-export async function fetchJobs(): Promise<Job[]> {
-  const q = query(collection(db, COL), orderBy('appliedDate', 'desc'));
+export async function fetchJobs(userId: string): Promise<Job[]> {
+  const q = query(
+    collection(db, COL),
+    where('userId', '==', userId),
+    orderBy('appliedDate', 'desc')
+  );
   const snapshot = await getDocs(q);
   return snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Job));
 }
