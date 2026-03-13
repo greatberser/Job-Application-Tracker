@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
-import { JOB_STATUSES } from '@/types/job';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { JOB_STATUSES, JobStatus } from '@/types/job';
 import { useJobStore } from '@/store/jobStore';
 import { useAuthStore } from '@/store/authStore';
 import JobCard from '@/components/JobCard';
@@ -13,9 +14,24 @@ export default function Home() {
   const loadJobs = useJobStore((state) => state.loadJobs);
   const { user, signOutUser } = useAuthStore();
 
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const activeStatus = searchParams.get('status') as JobStatus | null;
+
+  function setFilter(status: JobStatus | null) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (status) params.set('status', status);
+    else params.delete('status');
+    router.replace(`?${params.toString()}`);
+  }
+
   useEffect(() => {
     loadJobs();
   }, []);
+
+  const visibleStatuses = activeStatus
+    ? JOB_STATUSES.filter((s) => s.value === activeStatus)
+    : JOB_STATUSES;
 
   if (loading) {
     return (
@@ -27,12 +43,10 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-50 p-6">
-      <header className="mb-8 flex items-center justify-between">
+      <header className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Job Tracker</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {jobs.length} applications tracked
-          </p>
+          <p className="text-sm text-gray-500 mt-1">{jobs.length} applications tracked</p>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-sm text-gray-500 hidden sm:block">{user?.displayName}</span>
@@ -46,8 +60,30 @@ export default function Home() {
         </div>
       </header>
 
+      <div className="flex gap-2 mb-6 flex-wrap">
+        <button
+          onClick={() => setFilter(null)}
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+            !activeStatus ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+          }`}
+        >
+          All
+        </button>
+        {JOB_STATUSES.map(({ value, label }) => (
+          <button
+            key={value}
+            onClick={() => setFilter(value)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              activeStatus === value ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {JOB_STATUSES.map(({ value, label }) => {
+        {visibleStatuses.map(({ value, label }) => {
           const col = jobs.filter((j) => j.status === value);
           return (
             <div key={value} className="flex flex-col gap-3">
