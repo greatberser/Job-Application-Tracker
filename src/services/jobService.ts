@@ -33,7 +33,10 @@ export async function createJob(job: Omit<Job, 'id'>): Promise<Job> {
 }
 
 export async function editJob(id: string, updates: Partial<Job>): Promise<void> {
-  await updateDoc(doc(db, COL, id), updates);
+  const clean = Object.fromEntries(
+    Object.entries(updates).filter(([, v]) => v !== undefined)
+  );
+  await updateDoc(doc(db, COL, id), clean);
 }
 
 export async function removeJob(id: string): Promise<void> {

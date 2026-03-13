@@ -7,6 +7,7 @@ import { useJobStore } from '@/store/jobStore';
 import { useAuthStore } from '@/store/authStore';
 import JobCard from '@/components/JobCard';
 import AddJobForm from '@/components/AddJobForm';
+import StatsDashboard from '@/components/StatsDashboard';
 
 export default function Home() {
   const jobs = useJobStore((state) => state.jobs);
@@ -59,6 +60,8 @@ export default function Home() {
           </button>
         </div>
       </header>
+
+      <StatsDashboard jobs={jobs} />
 
       <div className="flex gap-2 mb-6 flex-wrap">
         <button
