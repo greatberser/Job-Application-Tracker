@@ -108,7 +108,7 @@ export default function Home() {
         {visibleStatuses.map(({ value, label }) => {
           const col = jobs.filter((j) => j.status === value);
           return (
-            <div key={value} className="flex flex-col gap-3">
+            <div key={value} className="flex flex-col gap-3 min-h-0">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
                   {label}
@@ -117,11 +117,13 @@ export default function Home() {
                   {col.length}
                 </span>
               </div>
-              {col.length === 0 ? (
-                <EmptyColumn />
-              ) : (
-                col.map((job) => <JobCard key={job.id} job={job} />)
-              )}
+              <div className="overflow-y-auto max-h-[calc(95vh-280px)] flex flex-col gap-3 pr-1">
+                {col.length === 0 ? (
+                  <EmptyColumn />
+                ) : (
+                  col.map((job) => <JobCard key={job.id} job={job} />)
+                )}
+              </div>
             </div>
           );
         })}
