@@ -4,6 +4,7 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
+  deleteField,
   doc,
   orderBy,
   query,
@@ -34,7 +35,7 @@ export async function createJob(job: Omit<Job, 'id'>): Promise<Job> {
 
 export async function editJob(id: string, updates: Partial<Job>): Promise<void> {
   const clean = Object.fromEntries(
-    Object.entries(updates).filter(([, v]) => v !== undefined)
+    Object.entries(updates).map(([k, v]) => [k, v === undefined ? deleteField() : v])
   );
   await updateDoc(doc(db, COL, id), clean);
 }
