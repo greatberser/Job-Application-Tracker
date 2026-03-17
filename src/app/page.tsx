@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { JOB_STATUSES, JobStatus } from '@/types/job';
 import { useJobStore } from '@/store/jobStore';
@@ -32,6 +32,16 @@ export default function Home() {
   useEffect(() => {
     if (user) loadJobs(user.uid);
   }, [user]);
+
+  const [search, setSearch] = useState('');
+
+  const filteredJobs = search.trim()
+    ? jobs.filter(
+        (j) =>
+          j.company.toLowerCase().includes(search.toLowerCase()) ||
+          j.role.toLowerCase().includes(search.toLowerCase())
+      )
+    : jobs;
 
   const visibleStatuses = activeStatus
     ? JOB_STATUSES.filter((s) => s.value === activeStatus)
@@ -80,7 +90,17 @@ export default function Home() {
         </div>
       </header>
 
-      <StatsDashboard jobs={jobs} />
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Search by company or role..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full sm:w-72 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900"
+        />
+      </div>
+
+      <StatsDashboard jobs={filteredJobs} />
 
       <div className="flex gap-2 mb-6 flex-wrap">
         <button
@@ -106,7 +126,7 @@ export default function Home() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {visibleStatuses.map(({ value, label }) => {
-          const col = jobs.filter((j) => j.status === value);
+          const col = filteredJobs.filter((j) => j.status === value);
           return (
             <div key={value} className="flex flex-col gap-3 min-h-0">
               <div className="flex items-center justify-between">
