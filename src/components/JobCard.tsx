@@ -13,6 +13,7 @@ interface Props {
 export default function JobCard({ job }: Props) {
   const deleteJob = useJobStore((state) => state.deleteJob);
   const [editing, setEditing] = useState(false);
+  const [confirming, setConfirming] = useState(false);
 
   const deadlineSoon =
     job.deadline &&
@@ -34,13 +35,34 @@ export default function JobCard({ job }: Props) {
           >
             ✎
           </button>
-          <button
-            onClick={() => deleteJob(job.id)}
-            className="text-gray-300 hover:text-red-500 transition-colors text-lg leading-none"
-            aria-label="Delete job"
-          >
-            ×
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setConfirming(true)}
+              className="text-gray-300 hover:text-red-500 transition-colors text-lg leading-none"
+              aria-label="Delete job"
+            >
+              ×
+            </button>
+            {confirming && (
+              <div className="absolute right-0 top-6 z-10 bg-white border border-gray-200 rounded-xl shadow-lg p-3 w-44">
+                <p className="text-xs text-gray-600 mb-3">Delete this application?</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => deleteJob(job.id)}
+                    className="flex-1 bg-red-500 text-white text-xs py-1.5 rounded-lg hover:bg-red-600 transition-colors"
+                  >
+                    Delete
+                  </button>
+                  <button
+                    onClick={() => setConfirming(false)}
+                    className="flex-1 border border-gray-200 text-xs py-1.5 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
