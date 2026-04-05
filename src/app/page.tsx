@@ -5,12 +5,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { JOB_STATUSES, JobStatus } from '@/types/job';
 import { useJobStore } from '@/store/jobStore';
 import { useAuthStore } from '@/store/authStore';
-import JobCard from '@/components/JobCard';
 import EmptyColumn from '@/components/EmptyColumn';
 import AddJobForm from '@/components/AddJobForm';
 import StatsDashboard from '@/components/StatsDashboard';
 import SkeletonBoard from '@/components/SkeletonBoard';
+import DraggableCard from '@/components/DraggableCard';
+import DroppableColumn from '@/components/DroppableColumn';
 import { exportToCsv } from '@/utils/exportCsv';
+import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 
 export default function Home() {
   const jobs = useJobStore((state) => state.jobs);
@@ -34,6 +36,19 @@ export default function Home() {
   }, [user]);
 
   const [search, setSearch] = useState('');
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+  const updateJob = useJobStore((state) => state.updateJob);
+
+  const sensors = useSensors(useSensor(PointerSensor, {
+    activationConstraint: { distance: 5 },
+  }));
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const newStatus = over.id as JobStatus;
+    updateJob(active.id as string, { status: newStatus });
+  }
 
   const filteredJobs = search.trim()
     ? jobs.filter(
@@ -73,7 +88,6 @@ export default function Home() {
           <p className="text-sm text-gray-500 mt-1">{jobs.length} applications tracked</p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-sm text-gray-500 hidden sm:block">{user?.displayName}</span>
           <button
             onClick={() => exportToCsv(jobs)}
             className="px-4 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
@@ -102,7 +116,8 @@ export default function Home() {
 
       <StatsDashboard jobs={filteredJobs} />
 
-      <div className="flex gap-2 mb-6 flex-wrap">
+      <div className="flex gap-2 mb-6 flex-wrap items-center justify-between">
+        <div className="flex gap-2 flex-wrap">
         <button
           onClick={() => setFilter(null)}
           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
@@ -122,32 +137,49 @@ export default function Home() {
             {label}
           </button>
         ))}
+        </div>
+        <button
+          onClick={() => setSortOrder((o) => (o === 'desc' ? 'asc' : 'desc'))}
+          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+        >
+          {sortOrder === 'desc' ? '↓ Newest first' : '↑ Oldest first'}
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {visibleStatuses.map(({ value, label }) => {
-          const col = filteredJobs.filter((j) => j.status === value);
-          return (
-            <div key={value} className="flex flex-col gap-3 min-h-0">
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-                  {label}
-                </h2>
-                <span className="text-xs bg-gray-200 text-gray-600 rounded-full px-2 py-0.5">
-                  {col.length}
-                </span>
+      <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {visibleStatuses.map(({ value, label }) => {
+            const col = filteredJobs
+            .filter((j) => j.status === value)
+            .sort((a, b) =>
+              sortOrder === 'desc'
+                ? new Date(b.appliedDate).getTime() - new Date(a.appliedDate).getTime()
+                : new Date(a.appliedDate).getTime() - new Date(b.appliedDate).getTime()
+            );
+            return (
+              <div key={value} className="flex flex-col gap-3 min-h-0">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                    {label}
+                  </h2>
+                  <span className="text-xs bg-gray-200 text-gray-600 rounded-full px-2 py-0.5">
+                    {col.length}
+                  </span>
+                </div>
+                <DroppableColumn status={value}>
+                  <div className="overflow-y-auto max-h-[calc(95vh-280px)] flex flex-col gap-3 pr-1">
+                    {col.length === 0 ? (
+                      <EmptyColumn />
+                    ) : (
+                      col.map((job) => <DraggableCard key={job.id} job={job} />)
+                    )}
+                  </div>
+                </DroppableColumn>
               </div>
-              <div className="overflow-y-auto max-h-[calc(95vh-280px)] flex flex-col gap-3 pr-1">
-                {col.length === 0 ? (
-                  <EmptyColumn />
-                ) : (
-                  col.map((job) => <JobCard key={job.id} job={job} />)
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      </DndContext>
     </main>
   );
 }
